@@ -1,12 +1,10 @@
-# Kalle's suggestions to improve the model:
-#
-# 1) Take the standard deviations into account. One way is imposing weight
-#    coefficients into the distance function. Maybe even think what is the effect
-#    of assuming the data is normally distributed.
-# 4) Really the whole model could perhaps be a Bayesian model giving equal a 
-#    priori weight to all admix proportions and then conditioning with reality
-#    to pick the favourite candidate. Could be also that we do not know enough
-#    about the random variables?
+#    TODO:
+# 1) Take the standard deviations into account. The cost function should be density
+#    of the n-dimensional normal distribution at a given point. At first, assume
+#    independence. Maybe not, at first, put a default input for the covariance
+#    matrix.
+# 2) If the \code{} means LaTeX-code, the symbol $ is probably not permitted and I
+#    should change them all to \$. Ask Thomas.
 
 ## Graph fitting #################################################################
 
@@ -49,7 +47,7 @@ build_edge_optimisation_matrix <- function(data, graph, parameters
         }
         admix_product <- substring(admix_product, 2)
         # Yeah I know this is a bit silly but the matrix is only created once.
-        if (nrow(statistic[[j]]$positive) > 0) { # Insert the positive stuff
+        if (nrow(statistic[[j]]$positive) > 0) { # Insert the positive stuff.
           for (k in seq(1, nrow(statistic[[j]]$positive))) {
             edge_name <- paste("edge", statistic[[j]]$positive[k, 1],
                                statistic[[j]]$positive[k, 2], sep = "_")
@@ -58,7 +56,7 @@ build_edge_optimisation_matrix <- function(data, graph, parameters
                      admix_product, sep = " + ")
           }
         }
-        if (nrow(statistic[[j]]$negative) > 0) { # Insert the negative stuff
+        if (nrow(statistic[[j]]$negative) > 0) { # Insert the negative stuff.
           for (k in seq(1, nrow(statistic[[j]]$negative))) {
             edge_name <- paste("edge", statistic[[j]]$negative[k, 1], 
                                statistic[[j]]$negative[k, 2], sep = "_")
@@ -125,7 +123,7 @@ build_edge_optimisation_matrix <- function(data, graph, parameters
 #' The cost function fed to nelder mead.
 #' 
 #' We want nelder mead to run fast so the cost function operates with the column
-#' rduced edge optimisation matrix and does not give any extar information about 
+#' reduced edge optimisation matrix and does not give any extra information about 
 #' the fit. For the details, use \code{edge_optimisation_function} instead.
 #' 
 #' @param data  The data set.
@@ -157,13 +155,13 @@ cost_function <- function(data, matrix, graph,
     }
     # Now just use a ready-made function to find the best non-negative solution
     # in the Euclidian norm. Apparently this is "slow" in the sense it takes 
-    # (n^3) steps and not ~O(n^2.3) steps as it coud in principle.
+    # O(n^3) steps and not ~O(n^2.3) steps as it coud in principle.
     lsq_solution <- pracma::lsqnonneg(evaluated_matrix, goal)
     lsq_solution$resid.norm
   }
 }
 
-#' More detailed edge fitting that mere \code{cost_function}.
+#' More detailed edge fitting than mere \code{cost_function}.
 #' 
 #' Returning the cost, an example edge solution of an optimal fit, and linear 
 #' relations describing the set of all edge solutions. Operating with the full
