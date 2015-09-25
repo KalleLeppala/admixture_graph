@@ -15,23 +15,21 @@
 #' 
 #' The elements are characters containing numerals, admix variable names,
 #' parenthesis and arithmetical operations. (Transform into expressions with
-#' \code(parse) and then evaluate with \code(eval)). The column names are the
-#' edge names from \code(extract_graph_parameter$edges), the rows have no names.
+#' \code{parse} and then evaluate with \code{eval}). The column names are the
+#' edge names from \code{extract_graph_parameter$edges}, the rows have no names.
 #' 
 #' If the essential number of equations is not higher than the essential number of
 #' edge variables, the quality of edge optimisation will not depend on the admix
 #' variables (expect in a very special cases), and a complaint will be given.
 #' 
-#' @param data  The data set.
-#' @param graph  The admixture graph.
+#' @param data        The data set.
+#' @param graph       The admixture graph.
 #' @param parameters  In case one wants to tweak something in the graph.
 #'   
-#' @return A list containing the full matrix (\code($full)), a version with zero
-#'         columns removed (\code($column_reduced)), a version with zero rows and
-#'         repeated rows also removed (\code($double_reduced)), and an indicator
-#'         of warning (\code($complaint)).
-#'   
-#' @export
+#' @return A list containing the full matrix (\code{$full}), a version with zero
+#'         columns removed (\code{$column_reduced}), a version with zero rows and
+#'         repeated rows also removed (\code{$double_reduced}), and an indicator
+#'         of warning (\code{$complaint}).
 build_edge_optimisation_matrix <- function(data, graph, parameters 
                                            = extract_graph_parameters(graph)) {
   m <- nrow(data) # Number of equations is the number of f4-statistics.
@@ -126,18 +124,16 @@ build_edge_optimisation_matrix <- function(data, graph, parameters
 #' 
 #' We want nelder mead to run fast so the cost function operates with the column
 #' rduced edge optimisation matrix and does not give any extar information about 
-#' the fit. For the details, use \code(edge_optimisation_function) instead.
+#' the fit. For the details, use \code{edge_optimisation_function} instead.
 #' 
 #' @param data  The data set.
 #' @param matrix  A column reduced edge optimisation matrix (typically given by 
-#'                the function \code(edge_optimisation_matrix$column_reduced)).
+#'                the function \code{edge_optimisation_matrix$column_reduced}).
 #' @param graph  The admixture graph.
 #' @param parameters  In case one wants to tweak something in the graph.
 #'   
 #' @return  Given an input vector of admix variables, returns the smallest error 
 #'          regarding the edge variables.
-#'   
-#' @export
 cost_function <- function(data, matrix, graph, 
                           parameters = extract_graph_parameters(graph)) {
   if (!requireNamespace("pracma", quietly = TRUE)) {
@@ -157,13 +153,13 @@ cost_function <- function(data, matrix, graph,
     }
     # Now just use a ready-made function to find the best non-negative solution
     # in the Euclidian norm. Apparently this is "slow" in the sense it takes 
-    # (n^3) steps and not ~O(n^2.3) steps as it coud in principle.
-    lsq_solution <- lsqnonneg(evaluated_matrix, goal)
+    # O(n^3) steps and not O(n^2.3) steps as it could in principle.
+    lsq_solution <- pracma::lsqnonneg(evaluated_matrix, goal)
     lsq_solution$resid.norm
   }
 }
 
-#' More detailed edge fitting that mere \code(cost_function).
+#' More detailed edge fitting than mere \code{cost_function}.
 #' 
 #' Returning the cost, an example edge solution of an optimal fit, and linear 
 #' relations describing the set of all edge solutions. Operating with the full
@@ -171,18 +167,16 @@ cost_function <- function(data, matrix, graph,
 #' 
 #' @param data  The data set.
 #' @param matrix  A full  edge optimisation matrix (typically given by the 
-#'                function \code(edge_optimisation_matrix$full)).
+#'                function \code{edge_optimisation_matrix$full}).
 #' @param graph  The admixture graph.
 #' @param parameters  In case one wants to tweak something in the graph.
 #'   
-#' @return  Given an input vector of admix variables, returns a list containing
-#'          the minimal error (\code($cost)), the graph-f4-statistics 
-#'          (\code$approximation), an example solution (\code($edge_fit)), linear
-#'          relations describing all the solutions (\code($homogeneous)) and one 
-#'          way to choose the free (\code($free_edges)) and bounded 
-#'          (\code($bounded_edges)) edge variables.
-#'   
-#' @export
+#' @return  Given an input vector of admix variables, returns a list \code{x} containing
+#'          the minimal error (\code{x$cost}), the graph-f4-statistics 
+#'          (\code{x$approximation}), an example solution (\code{x$edge_fit}), linear
+#'          relations describing all the solutions (\code{x$homogeneous}) and one 
+#'          way to choose the free (\code{x$free_edges}) and bounded 
+#'          (\code{x$bounded_edges}) edge variables.
 edge_optimisation_function <- function(data, matrix, graph, 
                               parameters = extract_graph_parameters(graph)) {
   if (!requireNamespace("pracma", quietly = TRUE)) {
@@ -201,7 +195,7 @@ edge_optimisation_function <- function(data, matrix, graph,
       }
     }
     # Record the (or an example of an) optimal solution and error.
-    lsq_solution <- lsqnonneg(evaluated_matrix, goal)
+    lsq_solution <- pracma::lsqnonneg(evaluated_matrix, goal)
     edge_fit <- lsq_solution$x
     names(edge_fit) <- parameters$edges
     approximation <- evaluated_matrix %*% edge_fit
@@ -210,7 +204,7 @@ edge_optimisation_function <- function(data, matrix, graph,
     # edge lengths depend on one another, as the least square function only gave
     # one exaple of an optimal solution. This information is visible after
     # manipulating the optimisation matrix into reduced row echelon form.
-    homogeneous_matrix <- rref(evaluated_matrix)
+    homogeneous_matrix <- pracma::rref(evaluated_matrix)
     # Make a list of (one choice of) free edges.
     free_edges <- c()
     i <- 1
@@ -286,16 +280,16 @@ edge_optimisation_function <- function(data, matrix, graph,
 #' 
 #' @param data  The data set.
 #' @param graph  The admixture graph.
-#' @param parameters  In case one wants to tweak something in the graph.
 #' @param optimisation_options  Options to the optimisation algorithm.
+#' @param parameters  In case one wants to tweak something in the graph.
 #'   
 #' @return A list containing everything about the fit.
 #'   
 #' @seealso \code{\link[neldermead]{optimset}}
 #'   
 #' @export
-fit_graph <- function(data, graph, parameters = extract_graph_parameters(graph),
-                      optimisation_options = NULL) {
+fit_graph <- function(data, graph, optimisation_options = NULL,
+                      parameters = extract_graph_parameters(graph)) {
   if (!requireNamespace("neldermead", quietly = TRUE)) {
     stop("This function requires neldermead to be installed.")
   }
@@ -319,7 +313,6 @@ fit_graph <- function(data, graph, parameters = extract_graph_parameters(graph),
       call = sys.call(),
       data = data,
       graph = graph,
-      params = parameters,
       matrix = matrix,
       complaint = matrix$complaint,
       best_fit = best_fit,
@@ -337,56 +330,50 @@ fit_graph <- function(data, graph, parameters = extract_graph_parameters(graph),
 
 ## Interface for accessing fitted data ############################################
 
-# All of this is supposed to be used after the user defines fit as an output of
-# fit_graph.
-
-# TODO: This function should maybe be like the rest of the interface functions,
-# having something to do with class.
-#' A contour plot of the cost function around the best fit with respect to 2
-#' admix variables specified by the user.
-#' 
-#' Returning the cost, an example edge solution of an optimal fit, and linear 
-#' relations describing the set of all edge solutions. Operating with the full
-#' edge optimisation matrix.
-#' 
-#' @param object  The fitted object.
-#' @param X  An admix variable name (remember quotation marks) or number.
-#' @param Y  An admix variable name (remember quotation marks) or number.
-#' @param resolution  How densely is the function evaluated.
-#'   
-#' @return  Just a contour plot with FIERY colours.
-#'   
-#' @export
-contour_plot <- function(object, X, Y, resolution = 10) {
-  if (!requireNamespace("grDevices", quietly = TRUE)) {
-    stop("This function requires grDevices to be installed.")
-  }
-  x <- seq(0, resolution)
-  y <- seq(0, resolution)
-  z <- matrix(0, resolution, resolution)
-  point <- object$best_fit
-  for (i in seq (1, resolution)) {
-    for (j in seq(1, resolution)) {
-      point[X] <- i/resolution
-      point[Y] <- j/resolution
-      z[i, j] <- cost_function(object$data, object$matrix$column_reduced,
-                               object$graph, object$parameters)(point)
-    }  
-  }
-  x <- 1:nrow(z)/resolution
-  y <- 1:ncol(z)/resolution
-  require(grDevices) # for colours
-  filled.contour(x, y, z, xlab = X, ylab = Y, color = heat.colors)
-}
-
 #' Print function for a fitted graph.
 #' 
 #' Print summary of the result of a fit.
 #' 
-#' @param object  The fitted object.
+#' @param x       The fitted object.
+#' @param ...     Additional parameters.
 #'  
 #' @export
-print.agraph_fit <- function(object) {
+print.agraph_fit <- function(x, ...) {
+  cat("\n")
+  cat("Call:")
+  cat("\n")
+  print(x$call)
+  
+  if (x$complaint == TRUE) {
+    cat("\n")
+    cat("The data is not sufficient to give a meaningful fit for this topology!")
+    cat("\n")
+  }
+  
+  cat("Minimal error:", x$best_error)
+}
+
+#' Get fitted parameters for a fitted graph.
+#' 
+#' Extract the graph parameters for a graph fitted to data.
+#' 
+#' @param object  The fitted object.
+#' @param ...     Additional parameters.
+#' 
+#' @export
+coef.agraph_fit <- function(object, ...) {
+  c(object$best_edge_fit, object$best_fit)
+}
+
+#' Print function for a fitted graph.
+#'   
+#' Print summary of the result of a fit.
+#' 
+#' @param object  The fitted object.
+#' @param ...     Additional parameters.
+#' 
+#' @export
+summary.agraph_fit <- function(object, ...) {
   cat("\n")
   cat("Call:")
   cat("\n")
@@ -396,63 +383,31 @@ print.agraph_fit <- function(object) {
     cat("The data is not sufficient to give a meaningful fit for this topology!")
     cat("\n")
   }
-  cat("Minimal error:", object$best_error)
-}
-
-#' Get fitted parameters for a fitted graph.
-#' 
-#' Extract the graph parameters for a graph fitted to data.
-#' 
-#' @param object  The fitted object.
-#' 
-#' @export
-coef.agraph_fit <- function(object) {
-  list(object$complaint, object$best_fit, object$best_edge_fit, object$free_edges,
-       object$bounded_edges)
-}
-
-#' Print function for a fitted graph.
-#'   
-#' Print summary of the result of a fit.
-#' 
-#' @param object  The fitted object.
-#' 
-#' @export
-summary.agraph_fit <- function(object) {
-cat("\n")
-cat("Call:")
-cat("\n")
-print(object$call)
-if (object$complaint == TRUE) {
   cat("\n")
-  cat("The data is not sufficient to give a meaningful fit for this topology!")
+  cat("Optimal admix variables:")
   cat("\n")
-}
-cat("\n")
-cat("Optimal admix variables:")
-cat("\n")
-print(object$best_fit)
-cat("\n")
-cat("Optimal edge variables:")
-cat("\n")
-print(object$best_edge_fit)
-cat("\n")
-cat("Solution to a homogeneous system of edges with the optimal admix variables:")
-cat("\n")
-cat("(Adding any such solution to the optimal one will not affect the error.)")
-cat("\n")
-cat("\n")
-cat("Free edge variables:")
-cat("\n")
-cat(object$free_edges, sep = "\n")
-cat("\n")
-cat("Bounded edge variables:")
-cat("\n")
-cat(object$bounded_edges, sep = "\n")
-cat("\n")
-cat("Minimal error:")
-cat("\n")
-cat(object$best_error)
+  print(object$best_fit)
+  cat("\n")
+  cat("Optimal edge variables:")
+  cat("\n")
+  print(object$best_edge_fit)
+  cat("\n")
+  cat("Solution to a homogeneous system of edges with the optimal admix variables:")
+  cat("\n")
+  cat("(Adding any such solution to the optimal one will not affect the error.)")
+  cat("\n")
+  cat("\n")
+  cat("Free edge variables:")
+  cat("\n")
+  cat(object$free_edges, sep = "\n")
+  cat("\n")
+  cat("Bounded edge variables:")
+  cat("\n")
+  cat(object$bounded_edges, sep = "\n")
+  cat("\n")
+  cat("Minimal error:")
+  cat("\n")
+  cat(object$best_error)
 }
 
 #' Extract fitted data for a fitted graph.
@@ -460,10 +415,10 @@ cat(object$best_error)
 #' Get the predicted f4 statistics for a fitted graph.
 #' 
 #' @param object  The fitted object.
-#' @param full  Should the fitted values include the full data used for fitting?
+#' @param ...     Additional parameters.
 #' 
 #' @export
-fitted.agraph_fit <- function(object) {
+fitted.agraph_fit <- function(object, ...) {
   object$data
 }
 
@@ -472,8 +427,9 @@ fitted.agraph_fit <- function(object) {
 #' Get D - graph_f4 for each data point used in the fit.
 #' 
 #' @param object  The fitted object.
+#' @param ...     Additional parameters.
 #' 
 #' @export
-residuals.agraph_fit <- function(object) {
+residuals.agraph_fit <- function(object, ...) {
   object$data$D - object$data$graph_f4
 }
