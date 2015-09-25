@@ -3,7 +3,7 @@
 # 1) Take the standard deviations into account. One way is imposing weight
 #    coefficients into the distance function. Maybe even think what is the effect
 #    of assuming the data is normally distributed.
-# 4) Really the whole model could perhaps be a Bayesian model giving equal a 
+# 2) Really the whole model could perhaps be a Bayesian model giving equal a 
 #    priori weight to all admix proportions and then conditioning with reality
 #    to pick the favourite candidate. Could be also that we do not know enough
 #    about the random variables?
@@ -38,31 +38,33 @@ build_edge_optimisation_matrix <- function(data, graph, parameters
   colnames(edge_optimisation_matrix) <- parameters$edges
   # Let's fill the matrix with polynomials of admix proportions.
   for (i in seq(1, m)) {
-    statistic <- f4(graph, data[i, 1], data[i, 2], data[i, 3], data[i, 4])
-    for (j in seq(1, length(statistic))) {
-      if (length(statistic[[j]]$prob) != 0) {
-        admix_product <- ""
-        for (k in seq(1, length(statistic[[j]]$prob))) {
-          admix_product <- paste(admix_product, statistic[[j]]$prob[k], sep = "*")
-        }
-        admix_product <- substring(admix_product, 2)
-        # Yeah I know this is a bit silly but the matrix is only created once.
-        if (nrow(statistic[[j]]$positive) > 0) { # Insert the positive stuff
-          for (k in seq(1, nrow(statistic[[j]]$positive))) {
-            edge_name <- paste("edge", statistic[[j]]$positive[k, 1],
-                               statistic[[j]]$positive[k, 2], sep = "_")
-            edge_optimisation_matrix[i, edge_name] <- 
-              paste(edge_optimisation_matrix[i, edge_name],
-                     admix_product, sep = " + ")
+    statistic <- f4(graph, data$W[i], data$X[i], data$Y[i], data$Z[i])
+    if (length(statistic) != 0) {
+      for (j in seq(1, length(statistic))) {
+        if (length(statistic[[j]]$prob) != 0) {
+          admix_product <- ""
+          for (k in seq(1, length(statistic[[j]]$prob))) {
+            admix_product <- paste(admix_product, statistic[[j]]$prob[k], sep = "*")
           }
-        }
-        if (nrow(statistic[[j]]$negative) > 0) { # Insert the negative stuff
-          for (k in seq(1, nrow(statistic[[j]]$negative))) {
-            edge_name <- paste("edge", statistic[[j]]$negative[k, 1], 
-                               statistic[[j]]$negative[k, 2], sep = "_")
-            edge_optimisation_matrix[i, edge_name] <- 
-              paste(edge_optimisation_matrix[i, edge_name], 
-                     admix_product, sep = " - ")
+          admix_product <- substring(admix_product, 2)
+          # Yeah I know this is a bit silly but the matrix is only created once.
+          if (nrow(statistic[[j]]$positive) > 0) { # Insert the positive stuff
+            for (k in seq(1, nrow(statistic[[j]]$positive))) {
+              edge_name <- paste("edge", statistic[[j]]$positive[k, 1],
+                                 statistic[[j]]$positive[k, 2], sep = "_")
+              edge_optimisation_matrix[i, edge_name] <- 
+                paste(edge_optimisation_matrix[i, edge_name],
+                       admix_product, sep = " + ")
+            }
+          }
+          if (nrow(statistic[[j]]$negative) > 0) { # Insert the negative stuff
+            for (k in seq(1, nrow(statistic[[j]]$negative))) {
+              edge_name <- paste("edge", statistic[[j]]$negative[k, 1], 
+                                 statistic[[j]]$negative[k, 2], sep = "_")
+              edge_optimisation_matrix[i, edge_name] <- 
+                paste(edge_optimisation_matrix[i, edge_name], 
+                       admix_product, sep = " - ")
+            }
           }
         }
       }
