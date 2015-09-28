@@ -5,12 +5,79 @@
 # 2) Find out how the f-statistics depend on one another. Find out hat subsets of
 #    the set of all statistics have no impied weight on some data. Preferably make
 #    a program to remove extra data from already sufficient data in some fair way.
-# 3) Try to possible to algebraically simplify the edge optimisation matrix.    
+# 3) Try to algebraically simplify the edge optimisation matrix.    
 # 4) The compalaint condition might not do the row reducing right, since elements
 #    are not in an arbitrary form. Either put them in some canonical form or do a
 #    numerical complaint condition.
 
 ## Graph fitting #################################################################
+
+#' Used to recognize to similar expressions and to possibly simplify them.
+#' 
+#' @param x   Input is assumed to be a char containing a polynomial, no spaces.
+#'            Each term is +/- a product of numerals, variables and (1-variables).
+#'            Everything is pretty much ruined if variable names contain forbidden
+#'            symbols \code{+, -, *, (, )}.
+#'
+#' @return   A polynomial in a canonical form with no parenthesis and the monomials
+#'           in lexigraphical order.
+#'              
+#' @export
+canonise_expression <- function(x) {
+  print(x)
+  # First add every term as an element to a list.
+  terms_list <- list()
+  temp <- ""
+  state <- 1
+  # State 1: Waiting for (, +, - or the end of the char. When +, -  or the end of the
+  # char found, add non-empty temp to terms_list.
+  # If ( found instead change to state 2.
+  # State 2: Waiting for ), ignoring - and switching back to state 1 when ) found.
+  for (i in seq(1, nchar(x))) {
+    if (state == 1) {
+      if (substring(x, i, i) == "+" || substring(x, i, i) == "-") {
+        if (i != 1) {
+          terms_list <- c(terms_list, temp)
+          temp <- ""
+        }
+      }
+      if (i == nchar(x)) {
+        temp <- paste(temp, substring(x, i, i), sep = "")
+        terms_list <- c(terms_list, temp)
+        temp <- ""
+      }
+      if (substring(x, i, i) == "(") {
+        state <- 2
+      }
+      temp <- paste(temp, substring(x, i, i), sep = "")
+      i <- i + 1
+    }
+    else {
+      if (substring(x, i, i) == ")") {
+        state <- 1
+      }
+      temp <- paste(temp, substring(x, i, i), sep = "")
+      i <- i + 1
+    }
+  }
+  print(terms_list)
+  print(temp)
+  monomials_list <- list()
+  # Next multiply all the parenthesis open, moving results to a list of monomials.
+  while (length(terms_list) > 0) {
+    beginning <- ""
+    ending <- ""
+    parenthesis_variable <- ""
+    state <- 1
+    # State 1: Waiting for ( or the end of the char. Add beginning to monomials list
+    # if the end found before (, otherwise change to state 2.
+    # State 2: Inside parenthesis, record the variable between - and ), then switch
+    # to state 3.
+    # State 3: Wait for the end of the char, then add two versions to terms list,
+    # composed from beginning, either 1 or parenthesis variable and ending.
+    for (i in seq(1, nchar(terms_list[1])))
+  }
+}
 
 #' Build a matrix coding the linear system of edges once the admix variables
 #' have been fixed.
