@@ -1,12 +1,14 @@
-# Kalle's suggestions to improve the model:
+# TODO:
 #
-# 1) Take the standard deviations into account. One way is imposing weight
-#    coefficients into the distance function. Maybe even think what is the effect
-#    of assuming the data is normally distributed.
-# 2) Really the whole model could perhaps be a Bayesian model giving equal a 
-#    priori weight to all admix proportions and then conditioning with reality
-#    to pick the favourite candidate. Could be also that we do not know enough
-#    about the random variables?
+# 1) Take the covariance matrix into account. When covariance matrix not given,
+#    assume independence and build one from data$Z.
+# 2) Find out how the f-statistics depend on one another. Find out hat subsets of
+#    the set of all statistics have no impied weight on some data. Preferably make
+#    a program to remove extra data from already sufficient data in some fair way.
+# 3) Try to possible to algebraically simplify the edge optimisation matrix.    
+# 4) The compalaint condition might not do the row reducing right, since elements
+#    are not in an arbitrary form. Either put them in some canonical form or do a
+#    numerical complaint condition.
 
 ## Graph fitting #################################################################
 
